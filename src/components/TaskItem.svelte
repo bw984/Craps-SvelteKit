@@ -1,22 +1,20 @@
 <script>
-    import { tasks } from "../auth-store";
     export let task = {};
   
     let isChecked;
   
-    function taskDone() {
+    async function taskDone(todo) {
       console.log(isChecked);
-  
-      let updatedTasks = $tasks.map((currentTask) => {
-        if (currentTask.id === task.id) {
-          currentTask.completed = isChecked;
-          return currentTask;
+      todo.completed = true
+      try {
+            const res = await fetch ('/todos', {
+                method: 'PUT',
+                body: JSON.stringify(todo)
+            })
+            console.log(res)
+        } catch(err) {
+            alert('There was an error.');
         }
-        return currentTask;
-      });
-  
-      tasks.set(updatedTasks);
-      console.log($tasks);
     }
   </script>
   
@@ -33,8 +31,8 @@
         type="checkbox"
         class="form-check-input"
         id="exampleCheck1"
-        bind:checked={isChecked}
-        on:change={(e) => taskDone(e)} />
+        bind:checked={task.completed}
+        on:change={taskDone(task)} />
       <span class:completed={task.completed}>{task.description}</span>
     </li>
   </main>

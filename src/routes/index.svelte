@@ -1,9 +1,17 @@
+<script context = 'module'>
+    export async function load({fetch}) {
+        const res = await fetch('/todos')
+        const jsonRes = await res.json()
+        return {props: {todos: jsonRes.todos}}
+    }
+</script>
 <script>
 	import { onMount } from 'svelte';
 	import auth from '../auth-service';
-	import { isAuthenticated, user, user_tasks, tasks } from '../auth-store';
+	import { isAuthenticated, user } from '../auth-store';
 	import TaskItem from '../components/TaskItem.svelte';
 
+    export let todos
 	let auth0Client;
 	let newTask;
 
@@ -24,17 +32,12 @@
 
 	async function addItem() {
 		let newTaskObject = {
-			id: genRandom(),
 			description: newTask,
 			completed: false,
 			user: $user.email
 		};
 
 		console.log(newTaskObject);
-
-		let updatedTasks = [...$tasks, newTaskObject];
-
-		tasks.set(updatedTasks);
 
 		newTask = '';
 		try {
@@ -45,15 +48,24 @@
 		} catch (err) {
 			alert('There was an error.');
 		}
+        fetchItems()
 	}
-
-	function genRandom(length = 7) {
-		var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-		var result = '';
-		for (var i = length; i > 0; --i)
-			result += chars[Math.round(Math.random() * (chars.length - 1))];
-		return result;
-	}
+    async function completeItem() {
+        try {
+            await fetch ('/todos', {
+                method: 'PUT',
+                body: JSON.stringify(todo)
+            })
+        } catch(err) {
+            alert('There was an error.');
+        }
+        fetchItems()
+    }
+    async function fetchItems() {
+        const res = await fetch ('/todos')
+        const jsonRes = await res.json()
+        todos = jsonRes.todos
+    }
 </script>
 
 <main>
@@ -121,7 +133,7 @@
 			<div class="row">
 				<div class="col-md-6">
 					<ul class="list-group">
-						{#each $user_tasks as item (item.id)}
+						{#each todos as item (item._id)}
 							<TaskItem task={item} />
 						{/each}
 					</ul>
